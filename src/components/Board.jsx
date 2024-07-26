@@ -8,6 +8,8 @@ import Column from "./Column.jsx";
 function Board() {
   const [columns, setColumns] = useState(getColumns(4));
   const [columnsOrder, setColumnsOrder] = useState(Object.keys(columns));
+  const [dropColumn, setDropColumn] = useState("");
+  const [dragItemId, setDragItemId] = useState("");
 
   const onDragEnd = useCallback(
     (result) => {
@@ -24,6 +26,16 @@ function Board() {
         return;
       }
 
+      if (
+        source.droppableId === columnsOrder[0] &&
+        destination.droppableId === columnsOrder[2]
+      ) {
+        return;
+      }
+
+      if (source.index % 2 === 1 && destination.index % 2 === 0) {
+        return;
+      }
       if (type === "COLUMN") {
         const newColumnsOrder = reorder(
           columnsOrder,
@@ -38,13 +50,14 @@ function Board() {
 
       const data = reorderItems({
         columns: columns,
+        columnsOrder,
         source,
         destination,
       });
 
       setColumns(data.columns);
     },
-    [columns, columnsOrder]
+    [columns, columnsOrder, dropColumn, dragItemId]
   );
 
   return (
@@ -62,6 +75,8 @@ function Board() {
                 index={index}
                 columnId={columnId}
                 items={columns[columnId]}
+                dropColumn={dropColumn}
+                dragItemId={dragItemId}
               />
             ))}
             {provided.placeholder}
