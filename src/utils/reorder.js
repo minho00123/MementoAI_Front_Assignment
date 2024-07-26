@@ -18,7 +18,7 @@ export const reorderItems = ({ columns, source, destination }) => {
       ...columns,
       [source.droppableId]: reordered,
     };
-    console.log(result);
+
     return {
       columns: result,
     };
