@@ -2,7 +2,15 @@ import React from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import Item from "./Item.jsx";
 
-function Column({ columnId, items, index, dropColumn, dragItemId }) {
+function Column({
+  columnId,
+  items,
+  index,
+  selectedItems,
+  setSelectedItems,
+  isDragDisabled,
+  draggingItems,
+}) {
   return (
     <Draggable key={columnId} draggableId={columnId} index={index}>
       {(provided) => (
@@ -10,19 +18,16 @@ function Column({ columnId, items, index, dropColumn, dragItemId }) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="m-5 p-4 border-2 rounded-lg text-3xl"
+          className="w-full m-5 px-10 py-2 border-2 rounded-lg bg-gray-300 text-3xl"
         >
           <div>{columnId}</div>
-          <Droppable
-            droppableId={columnId}
-            isDropDisabled={dropColumn === columnId}
-          >
+          <Droppable droppableId={columnId}>
             {(provided, snapshot) => (
               <div
                 {...provided.droppableProps}
                 ref={provided.innerRef}
-                className={`${
-                  snapshot.isDraggingOver ? "bg-gray-300" : "bg-white"
+                className={`p-0 ${
+                  snapshot.isDraggingOver ? "bg-blue-200" : "bg-gray-300"
                 }`}
               >
                 {items.map((item, index) => (
@@ -30,7 +35,10 @@ function Column({ columnId, items, index, dropColumn, dragItemId }) {
                     key={item.id}
                     item={item}
                     index={index}
-                    dragItemId={dragItemId}
+                    selectedItems={selectedItems}
+                    setSelectedItems={setSelectedItems}
+                    isDragDisabled={isDragDisabled}
+                    draggingItems={draggingItems}
                   />
                 ))}
                 {provided.placeholder}

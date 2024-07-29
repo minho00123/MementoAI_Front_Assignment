@@ -1,8 +1,36 @@
 import React from "react";
 import { Draggable } from "react-beautiful-dnd";
 
-function Item({ item, index, dragItemId }) {
-  console.log(dragItemId);
+function Item({
+  item,
+  index,
+  selectedItems,
+  setSelectedItems,
+  isDragDisabled,
+  draggingItems,
+}) {
+  const isSelected = selectedItems.includes(item);
+
+  const handleSelect = (e) => {
+    if (e.metaKey || e.ctrlKey) {
+      if (isSelected) {
+        setSelectedItems(selectedItems.filter((i) => i !== item));
+      } else {
+        setSelectedItems([...selectedItems, item]);
+      }
+    }
+  };
+
+  const getItemClass = () => {
+    if (isDragDisabled && draggingItems.includes(item)) {
+      return "bg-red-500";
+    }
+    if (isSelected) {
+      return "bg-blue-500";
+    }
+    return "bg-white";
+  };
+
   return (
     <Draggable key={item.id} draggableId={item.id} index={index}>
       {(provided, snapshot) => (
@@ -10,9 +38,10 @@ function Item({ item, index, dragItemId }) {
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`mx-2 my-4 p-2 border-2 rounded-lg bg-white text-xl text-center ${
-            snapshot.isDragging ? "bg-green-500" : "bg-white"
-          } ${dragItemId === item.id ? "bg-red-500" : "bg-white"} `}
+          onClick={handleSelect}
+          className={`my-5 p-2 border-2 rounded-lg text-xl text-center cursor-pointer ${getItemClass()} ${
+            snapshot.isDragging ? "bg-green-500" : ""
+          }`}
         >
           {item.content}
         </div>

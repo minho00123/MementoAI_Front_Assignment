@@ -1,28 +1,46 @@
 import React, { useCallback, useState } from "react";
+import { reorder } from "../utils/reorder.js";
 import { getColumns } from "../mocks/mockData.js";
-import { reorder, reorderItems } from "../utils/reorder.js";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
+
 import "../index.css";
 import Column from "./Column.jsx";
 
 function Board() {
   const [columns, setColumns] = useState(getColumns(4));
   const [columnsOrder, setColumnsOrder] = useState(Object.keys(columns));
-  const [dropColumn, setDropColumn] = useState("");
-  const [dragItemId, setDragItemId] = useState("");
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [draggingItems, setDraggingItems] = useState([]);
+  const [isDragDisabled, setIsDragDisabled] = useState(false);
 
-  const onDragEnd = useCallback(
-    (result) => {
-      const { source, destination, type } = result;
+  const onDragStart = useCallback(
+    (start) => {
+      const { draggableId, source } = start;
+
+      const sourceColumn = columns[source.droppableId] || [];
+
+      const draggedItem = sourceColumn.find((item) => item.id === draggableId);
+
+      const draggingItems = selectedItems.includes(draggedItem)
+        ? selectedItems
+        : [draggedItem];
+
+      setDraggingItems(
+        draggingItems.sort(
+          (a, b) => parseInt(a.id.split("-")[1]) - parseInt(b.id.split("-")[1])
+        )
+      );
+      setIsDragDisabled(false);
+    },
+    [columns, selectedItems]
+  );
+
+  const onDragUpdate = useCallback(
+    (update) => {
+      const { source, destination } = update;
 
       if (!destination) {
-        return;
-      }
-
-      if (
-        source.droppableId === destination.droppableId &&
-        source.index === destination.index
-      ) {
+        setIsDragDisabled(false);
         return;
       }
 
@@ -30,12 +48,59 @@ function Board() {
         source.droppableId === columnsOrder[0] &&
         destination.droppableId === columnsOrder[2]
       ) {
+        setIsDragDisabled(true);
         return;
       }
 
-      if (source.index % 2 === 1 && destination.index % 2 === 0) {
+      const sourceColumn = columns[source.droppableId] || [];
+      const destinationColumn = columns[destination.droppableId] || [];
+      const draggingItem = sourceColumn[source.index];
+      const destinationItem = destinationColumn[destination.index];
+
+      if (source.droppableId === destination.droppableId) {
+        if (
+          draggingItem &&
+          parseInt(draggingItem.content.split(" ")[1]) % 2 === 0 &&
+          destinationItem &&
+          parseInt(destinationItem.content.split(" ")[1]) % 2 === 1 &&
+          parseInt(destinationItem.content.split(" ")[1]) !== 1
+        ) {
+          setIsDragDisabled(true);
+          return;
+        }
+      } else {
+        if (
+          draggingItem &&
+          parseInt(draggingItem.content.split(" ")[1]) % 2 === 0 &&
+          destinationItem &&
+          parseInt(destinationItem.content.split(" ")[1]) % 2 === 0
+        ) {
+          setIsDragDisabled(true);
+          return;
+        }
+      }
+
+      setIsDragDisabled(false);
+    },
+    [columns]
+  );
+
+  const onDragEnd = useCallback(
+    (result) => {
+      const { source, destination, type } = result;
+
+      if (!destination) {
+        setDraggingItems([]);
+        setIsDragDisabled(false);
         return;
       }
+
+      if (isDragDisabled) {
+        setDraggingItems([]);
+        setIsDragDisabled(false);
+        return;
+      }
+
       if (type === "COLUMN") {
         const newColumnsOrder = reorder(
           columnsOrder,
@@ -44,30 +109,43 @@ function Board() {
         );
 
         setColumnsOrder(newColumnsOrder);
-
+        setDraggingItems([]);
+        setIsDragDisabled(false);
         return;
       }
 
-      const data = reorderItems({
-        columns: columns,
-        columnsOrder,
-        source,
-        destination,
-      });
+      const updatedColumns = { ...columns };
 
-      setColumns(data.columns);
+      updatedColumns[source.droppableId] = updatedColumns[
+        source.droppableId
+      ].filter((item) => !draggingItems.includes(item));
+
+      updatedColumns[destination.droppableId].splice(
+        destination.index,
+        0,
+        ...draggingItems
+      );
+
+      setColumns(updatedColumns);
+      setDraggingItems([]);
+      setSelectedItems([]);
+      setIsDragDisabled(false);
     },
-    [columns, columnsOrder, dropColumn, dragItemId]
+    [columns, columnsOrder, draggingItems, isDragDisabled]
   );
 
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DragDropContext
+      onDragStart={onDragStart}
+      onDragUpdate={onDragUpdate}
+      onDragEnd={onDragEnd}
+    >
       <Droppable droppableId="column" type="COLUMN" direction="horizontal">
         {(provided) => (
           <section
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex justify-center items-center h-screen"
+            className="flex justify-evenly h-screen bg-blue-400"
           >
             {columnsOrder.map((columnId, index) => (
               <Column
@@ -75,8 +153,10 @@ function Board() {
                 index={index}
                 columnId={columnId}
                 items={columns[columnId]}
-                dropColumn={dropColumn}
-                dragItemId={dragItemId}
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+                isDragDisabled={isDragDisabled}
+                draggingItems={draggingItems}
               />
             ))}
             {provided.placeholder}
