@@ -35,56 +35,6 @@ function Board() {
     [columns, selectedItems]
   );
 
-  const onDragUpdate = useCallback(
-    (update) => {
-      const { source, destination } = update;
-
-      if (!destination) {
-        setIsDragDisabled(false);
-        return;
-      }
-
-      if (
-        source.droppableId === columnsOrder[0] &&
-        destination.droppableId === columnsOrder[2]
-      ) {
-        setIsDragDisabled(true);
-        return;
-      }
-
-      const sourceColumn = columns[source.droppableId] || [];
-      const destinationColumn = columns[destination.droppableId] || [];
-      const draggingItem = sourceColumn[source.index];
-      const destinationItem = destinationColumn[destination.index];
-
-      if (source.droppableId === destination.droppableId) {
-        if (
-          draggingItem &&
-          parseInt(draggingItem.content.split(" ")[1]) % 2 === 0 &&
-          destinationItem &&
-          parseInt(destinationItem.content.split(" ")[1]) % 2 === 1 &&
-          parseInt(destinationItem.content.split(" ")[1]) !== 1
-        ) {
-          setIsDragDisabled(true);
-          return;
-        }
-      } else {
-        if (
-          draggingItem &&
-          parseInt(draggingItem.content.split(" ")[1]) % 2 === 0 &&
-          destinationItem &&
-          parseInt(destinationItem.content.split(" ")[1]) % 2 === 0
-        ) {
-          setIsDragDisabled(true);
-          return;
-        }
-      }
-
-      setIsDragDisabled(false);
-    },
-    [columns]
-  );
-
   const onDragEnd = useCallback(
     (result) => {
       const { source, destination, type } = result;
@@ -99,6 +49,41 @@ function Board() {
         setDraggingItems([]);
         setIsDragDisabled(false);
         return;
+      }
+
+      if (
+        source.droppableId === columnsOrder[0] &&
+        destination.droppableId === columnsOrder[2]
+      ) {
+        setIsDragDisabled(true);
+        return;
+      }
+
+      const lastDraggingItem = draggingItems[draggingItems.length - 1];
+      const destinationColumn = columns[destination.droppableId] || [];
+      const destinationItem = destinationColumn[destination.index];
+
+      if (source.droppableId === destination.droppableId) {
+        if (
+          lastDraggingItem &&
+          parseInt(lastDraggingItem.content.split(" ")[1]) % 2 === 0 &&
+          destinationItem &&
+          parseInt(destinationItem.content.split(" ")[1]) % 2 === 1 &&
+          parseInt(destinationItem.content.split(" ")[1]) !== 1
+        ) {
+          setIsDragDisabled(true);
+          return;
+        }
+      } else {
+        if (
+          lastDraggingItem &&
+          parseInt(lastDraggingItem.content.split(" ")[1]) % 2 === 0 &&
+          destinationItem &&
+          parseInt(destinationItem.content.split(" ")[1]) % 2 === 0
+        ) {
+          setIsDragDisabled(true);
+          return;
+        }
       }
 
       if (type === "COLUMN") {
@@ -135,17 +120,13 @@ function Board() {
   );
 
   return (
-    <DragDropContext
-      onDragStart={onDragStart}
-      onDragUpdate={onDragUpdate}
-      onDragEnd={onDragEnd}
-    >
+    <DragDropContext onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <Droppable droppableId="column" type="COLUMN" direction="horizontal">
         {(provided) => (
           <section
             {...provided.droppableProps}
             ref={provided.innerRef}
-            className="flex justify-evenly h-screen bg-blue-400"
+            className="flex justify-evenly bg-blue-400"
           >
             {columnsOrder.map((columnId, index) => (
               <Column

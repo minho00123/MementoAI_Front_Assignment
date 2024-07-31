@@ -18,6 +18,8 @@ function Item({
       } else {
         setSelectedItems([...selectedItems, item]);
       }
+    } else {
+      setSelectedItems([item]);
     }
   };
 
@@ -33,15 +35,13 @@ function Item({
 
   return (
     <Draggable key={item.id} draggableId={item.id} index={index}>
-      {(provided, snapshot) => (
+      {(provided) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           onClick={handleSelect}
-          className={`my-5 p-2 border-2 rounded-lg text-xl text-center cursor-pointer ${getItemClass()} ${
-            snapshot.isDragging ? "bg-green-500" : ""
-          }`}
+          className={`my-5 p-2 border-2 rounded-lg text-xl text-center cursor-pointer ${getItemClass()}`}
         >
           {item.content}
         </div>
