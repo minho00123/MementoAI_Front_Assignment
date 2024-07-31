@@ -2,15 +2,15 @@
 
 ## 폴더 구조
 
-|- src
-| |- components
-| |- mocks
-| |- utils
-| |- App.jsx
-| |- index.css
-| |- index.js
-|
-|-index.html
+|- src <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- components <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- mocks <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- utils <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- App.jsx <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- index.css <br>
+| &nbsp;&nbsp;&nbsp;&nbsp; |- index.js <br>
+|<br>
+|-index.html <br>
 
 ※ CSS는 TailwindCSS를 사용하였습니다.
 
